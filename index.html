@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>카카오톡 분석</title>
+  <style media="screen">
+  @import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
+    body{
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      font-family: 'Noto sans kr', sans-serif;
+      color: white;
+    }
+    #bg1{
+      background-image: linear-gradient( 135deg, #CE9FFC 10%, #7367F0 100%);
+      z-index: -96;
+    }#bg2{
+      background-image: linear-gradient( 135deg, #ABDCFF 10%, #0396FF 100%);
+      z-index: -97;
+    }#bg3{
+      background-image: linear-gradient( 135deg, #FDEB71 10%, #F8D800 100%);
+      z-index: -98;
+    }#bg4{
+      background-image: linear-gradient( 135deg, #90F7EC 10%, #32CCBC 100%);
+      z-index: -99;
+    }#bg5{
+      background-image: linear-gradient( 135deg, #81FBB8 10%, #28C76F 100%);
+      z-index: -100;
+    }
+    .gr{
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+    }
+    #container{
+      max-width: 500px;
+      height: 700px;
+      background-color: rgba(255,255,255,0.2);
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 30px;
+      padding: 20px;
+      -webkit-box-sizing: border-box;
+         -moz-box-sizing: border-box;
+              box-sizing: border-box;
+      position: relative;
+    }
+    #main{
+      padding-top: 10px;
+    }
+    h1{
+      color: white;
+    }
+    #content{
+      margin-top: 150px;
+      font-size: 50px;
+      font-weight: 100;
+    }
+    #next{
+      background-color: rgba(255,255,255,0.5);
+      width: 70px;
+      line-height: 30px;
+      border-radius: 10px;
+      position: absolute;
+      margin: auto;
+      top: 600px;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      height: 30px;
+      z-index: 100;
+    }
+    textarea{
+      opacity: 0;
+      border: 0;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    function analysis(x){
+      chatsum = x.match(/\[.*\] \[오/g).length;  //채팅 개수
+      personaldata = ["a", "b", "c"];
+      uniqueNames = [];                          //채터 명수
+      names = x.match(/\[.*\] \[오/g);
+      $.each(names, function(i, el){
+      	if($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+      })
+      for (var i = 0; i < uniqueNames.length; i++) {
+        uniqueNames[i] = uniqueNames[i].split('[',2)[1].split(']',2)[0];
+      }
+      analysis_array = [];
+      analysis_array[0] = chatsum;
+      analysis_array[1] = uniqueNames;
+      return
+    }
+
+    function toggle(obj, state){
+      if(state == 1){
+        $(obj).animate({'opacity': '0'}, 500);
+      } else{
+        $(obj).animate({'opacity': '1'}, 500);
+      }
+    }
+
+    var nscreen = 1;
+
+    function next(){
+      if(nscreen == 1){
+        toggle('.opacitys', 1);
+        $('#bg1').animate({'opacity': '0'}, 1000);
+        setTimeout(function(){
+          $('h1').html("파일 업로드");
+          $('#content').html("카카오톡 오른쪽 위의 삼선메뉴를 클릭하고 대화내용에서 대화내용 내보내기 한 후 생긴 TXT 파일의 내용을 붙혀넣어주세요");
+          $('#content').css("font-size", 30);
+          $('#content').css("margin-top", "50px");
+          toggle('textarea',0);
+          nscreen = 2;
+        },500);
+        toggle('.opacitys', 0);
+      }else if(nscreen == 2){
+        analysis(document.getElementById('contents').value);
+        toggle('.opacitys', 1);
+        toggle('textarea',1);
+        $('#bg2').animate({'opacity': '0'}, 1000);
+        setTimeout(function(){
+          $('h1').html("분석 결과");
+          $('#content').html("참여자" + analysis_array[1] + "<br>채팅 수" + analysis_array[0]);
+          nscreen = "분석";
+        },500);
+        toggle('.opacitys',0);
+      }
+    }
+  </script>
+  <div class="gr" id="bg1"></div>
+  <div class="gr" id="bg2"></div>
+  <div class="gr" id="bg3"></div>
+  <div class="gr" id="bg4"></div>
+  <div class="gr" id="bg5"></div>
+  <div id="main">
+    <div id="container">
+      <h1 class="opacitys">카카오톡 분석기</h1>
+      <div id="content" class="opacitys">
+        안녕하세요 카카오톡 분석 orble입니다
+      </div>
+      <textarea rows="20" cols="60" id="contents"></textarea>
+      <div id="next" onclick="next()">다음</div>
+    </div>
+  </div>
+</body>
+</html>
