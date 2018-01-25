@@ -85,7 +85,7 @@
   <script type="text/javascript">
     function analysis(x){
       chatsum = x.match(/\[.*\] \[오/g).length;  //채팅 개수
-      personaldata = ["a", "b", "c"];
+      personaldata = [];
       uniqueNames = [];                          //채터 명수
       names = x.match(/\[.*\] \[오/g);
       $.each(names, function(i, el){
@@ -97,7 +97,6 @@
       analysis_array = [];
       analysis_array[0] = chatsum;
       analysis_array[1] = uniqueNames;
-      return
     }
 
     function toggle(obj, state){
@@ -127,6 +126,7 @@
         analysis(document.getElementById('contents').value);
         toggle('.opacitys', 1);
         toggle('textarea',1);
+        toggle('#next',1)
         $('#bg2').animate({'opacity': '0'}, 1000);
         setTimeout(function(){
           $('h1').html("분석 결과");
@@ -146,7 +146,7 @@
     <div id="container">
       <h1 class="opacitys">카카오톡 분석기</h1>
       <div id="content" class="opacitys">
-        안녕하세요 카카오톡 분석 orble입니다
+        아 여기에 뭐쓰지
       </div>
       <textarea rows="20" cols="60" id="contents"></textarea>
       <div id="next" onclick="next()">다음</div>
