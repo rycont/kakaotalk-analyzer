@@ -85,14 +85,21 @@
   <script type="text/javascript">
     function analysis(x){
       chatsum = x.match(/\[.*\] \[오/g).length;  //채팅 개수
-      personaldata = [];
       uniqueNames = [];                          //채터 명수
+      personaldata = [];
       names = x.match(/\[.*\] \[오/g);
       $.each(names, function(i, el){
       	if($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
       })
       for (var i = 0; i < uniqueNames.length; i++) {
         uniqueNames[i] = uniqueNames[i].split('[',2)[1].split(']',2)[0];
+      }
+      for (i = 0; i < uniqueNames.length; i++) {
+        personaldata[i] = [];
+        personaldata[i][0] = uniqueNames[i];
+        for (j = 0; j < x.match(uniqueNames[i]).length; j++) {
+          console.log(uniqueNames[i]);
+        }
       }
       analysis_array = [];
       analysis_array[0] = chatsum;
