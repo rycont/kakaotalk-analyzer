@@ -1,66 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>카카오톡 분석</title>
   <style media="screen">
-  @import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
-    body{
+    @import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
+    body {
       margin: 0;
       padding: 0;
       text-align: center;
       font-family: 'Noto sans kr', sans-serif;
       color: white;
     }
-    #bg1{
+
+    xmp {
+      font-family: inherit;
+      font-size: 100%;
+    }
+
+    #bg1 {
       background-image: linear-gradient( 135deg, #CE9FFC 10%, #7367F0 100%);
       z-index: -96;
-    }#bg2{
+    }
+
+    #bg2 {
       background-image: linear-gradient( 135deg, #ABDCFF 10%, #0396FF 100%);
       z-index: -97;
-    }#bg3{
-      background-image: linear-gradient( 135deg, #FDEB71 10%, #F8D800 100%);
-      z-index: -98;
-    }#bg4{
-      background-image: linear-gradient( 135deg, #90F7EC 10%, #32CCBC 100%);
-      z-index: -99;
-    }#bg5{
+    }
+
+    #bg3 {
       background-image: linear-gradient( 135deg, #81FBB8 10%, #28C76F 100%);
       z-index: -100;
     }
-    .gr{
+
+    .gr {
       height: 100vh;
       width: 100vw;
       position: fixed;
     }
-    #container{
+
+    #container {
       max-width: 500px;
       height: 700px;
-      background-color: rgba(255,255,255,0.2);
+      background-color: rgba(255, 255, 255, 0.2);
       margin-left: auto;
       margin-right: auto;
       border-radius: 30px;
       padding: 20px;
       -webkit-box-sizing: border-box;
-         -moz-box-sizing: border-box;
-              box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
       position: relative;
     }
-    #main{
+
+    #main {
       padding-top: 10px;
     }
-    h1{
+
+    h1 {
       color: white;
     }
-    #content{
+
+    #content {
       margin-top: 150px;
       font-size: 50px;
       font-weight: 100;
     }
-    #next{
-      background-color: rgba(255,255,255,0.5);
+
+    #next {
+      background-color: rgba(255, 255, 255, 0.5);
       width: 70px;
       line-height: 30px;
       border-radius: 10px;
@@ -73,74 +84,116 @@
       height: 30px;
       z-index: 100;
     }
-    textarea{
+
+    textarea {
       opacity: 0;
       border: 0;
       resize: none;
     }
+    #chart_div{
+      display: none;
+    }
   </style>
 </head>
+
 <body>
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">
-    function analysis(x){
-      chatsum = x.match(/\[.*\] \[오/g).length;  //채팅 개수
-      uniqueNames = [];                          //채터 명수
+    function toObject(arr) {
+      var rv = {};
+      for (var i = 0; i < arr.length; ++i)
+        rv[i] = arr[i];
+      return rv;
+    }
+
+    function analysis(x) {
+      chatsum = x.match(/\[.*\] \[오/g).length; //채팅 개수
+      uniqueNames = []; //채터 명수
       personaldata = [];
+      chartdata = [];
       names = x.match(/\[.*\] \[오/g);
-      $.each(names, function(i, el){
-      	if($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+      $.each(names, function(i, el) {
+        if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
       })
       for (var i = 0; i < uniqueNames.length; i++) {
-        uniqueNames[i] = uniqueNames[i].split('[',2)[1].split(']',2)[0];
+        uniqueNames[i] = uniqueNames[i].split('[', 2)[1].split(']', 2)[0];
       }
       for (i = 0; i < uniqueNames.length; i++) {
         personaldata[i] = [];
         personaldata[i][0] = uniqueNames[i];
-        for (j = 0; j < x.match(uniqueNames[i]).length; j++) {
-          console.log(uniqueNames[i]);
-        }
+        personaldata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
+        personaldata[i] = toObject(personaldata[i])
       }
-      analysis_array = [];
-      analysis_array[0] = chatsum;
-      analysis_array[1] = uniqueNames;
+      for (i = 1; i < uniqueNames.length; i++) {
+        chartdata[i] = [];
+        chartdata[i][0] = uniqueNames[i];
+        chartdata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
+      }
+      chartdata[0] = [];
+      chartdata[0][0] = "이름";
+      chartdata[0][1] = "개수";
+      analysis_array = new Array();
+      analysis_array.sum = chatsum;
+      analysis_array.names = uniqueNames;
+      analysis_array.personal = toObject(personaldata);
+      analysis_array.chartper = chartdata;
     }
 
-    function toggle(obj, state){
-      if(state == 1){
-        $(obj).animate({'opacity': '0'}, 500);
-      } else{
-        $(obj).animate({'opacity': '1'}, 500);
+    function toggle(obj, state) {
+      if (state == 1) {
+        $(obj).animate({
+          'opacity': '0'
+        }, 500);
+      } else {
+        $(obj).animate({
+          'opacity': '1'
+        }, 500);
       }
     }
 
     var nscreen = 1;
 
-    function next(){
-      if(nscreen == 1){
+    function next() {
+      if (nscreen == 1) {
         toggle('.opacitys', 1);
-        $('#bg1').animate({'opacity': '0'}, 1000);
-        setTimeout(function(){
+        $('#bg1').animate({
+          'opacity': '0'
+        }, 1000);
+        setTimeout(function() {
           $('h1').html("파일 업로드");
           $('#content').html("카카오톡 오른쪽 위의 삼선메뉴를 클릭하고 대화내용에서 대화내용 내보내기 한 후 생긴 TXT 파일의 내용을 붙혀넣어주세요");
           $('#content').css("font-size", 30);
           $('#content').css("margin-top", "50px");
-          toggle('textarea',0);
+          toggle('textarea', 0);
           nscreen = 2;
-        },500);
+        }, 500);
         toggle('.opacitys', 0);
-      }else if(nscreen == 2){
+      } else if (nscreen == 2) {
         analysis(document.getElementById('contents').value);
         toggle('.opacitys', 1);
-        toggle('textarea',1);
-        toggle('#next',1)
-        $('#bg2').animate({'opacity': '0'}, 1000);
-        setTimeout(function(){
-          $('h1').html("분석 결과");
-          $('#content').html("참여자: " + analysis_array[1] + "<br>채팅 수: " + analysis_array[0]);
+        toggle('textarea', 1);
+        toggle('#next', 1)
+        $('#bg2').animate({
+          'opacity': '0'
+        }, 1000);
+        setTimeout(function() {
+          $('h1').html("분석 결과");    google.charts.load('current', {'packages':['corechart']});
+              google.charts.setOnLoadCallback(drawChart);
+              function drawChart() {
+              var data = google.visualization.arrayToDataTable(analysis_array.chartper);
+                var options = {'title':'',
+                               'backgroundColor' : 'transparent',
+                               'width':400,
+                               'height':300};
+                var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+                chart.draw(data, options);
+              }
+          $('#content').html("총 채팅 개수: " + analysis_array.sum + "<br>구성원: " + analysis_array.names);
+          document.getElementById('chart_div').style.display = "block";
           nscreen = "분석";
-        },500);
-        toggle('.opacitys',0);
+        }, 500);
+        toggle('.opacitys', 0);
       }
     }
   </script>
@@ -155,9 +208,14 @@
       <div id="content" class="opacitys">
         아 여기에 뭐쓰지
       </div>
+      <div id="chart_div">차트 영역입니다</div>
       <textarea rows="20" cols="60" id="contents"></textarea>
       <div id="next" onclick="next()">다음</div>
     </div>
   </div>
+  <script type="text/javascript">
+
+  </script>
 </body>
+
 </html>
