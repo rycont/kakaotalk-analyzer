@@ -108,11 +108,13 @@
     }
 
     function analysis(x) {
-      chatsum = x.match(/\[.*\] \[오/g).length; //채팅 개수
+      chatsum = x.match(/\[(.*)\] \[오/g).length; //채팅 개수
       uniqueNames = []; //채터 명수
       personaldata = [];
       chartdata = [];
-      names = x.match(/\[.*\] \[오/g);
+      words = [];
+      awords = [];
+      names = x.match(/\[(.*)\] \[오/g);
       $.each(names, function(i, el) {
         if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
       })
@@ -125,11 +127,13 @@
         personaldata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
         personaldata[i] = toObject(personaldata[i])
       }
-      for (i = 1; i < uniqueNames.length; i++) {
+      for (i = 1; i <= uniqueNames.length; i++) {
         chartdata[i] = [];
-        chartdata[i][0] = uniqueNames[i];
-        chartdata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
+        chartdata[i][0] = uniqueNames[i - 1];
+        chartdata[i][1] = x.split("[" + uniqueNames[i - 1] + "] [오").length - 1;
       }
+      awords = x.split(" ");
+
       chartdata[0] = [];
       chartdata[0][0] = "이름";
       chartdata[0][1] = "개수";
@@ -178,7 +182,8 @@
           'opacity': '0'
         }, 1000);
         setTimeout(function() {
-          $('h1').html("분석 결과");    google.charts.load('current', {'packages':['corechart']});
+          $('h1').html("분석 결과");
+              google.charts.load('current', {'packages':['corechart']});
               google.charts.setOnLoadCallback(drawChart);
               function drawChart() {
               var data = google.visualization.arrayToDataTable(analysis_array.chartper);
