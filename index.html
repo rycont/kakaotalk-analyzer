@@ -108,29 +108,40 @@
     }
 
     function analysis(x) {
-      chatsum = x.match(/\[(.*)\] \[오/g).length; //채팅 개수
+      chatsum = x.match(/\[.*] \[오후|전\]/g).length; //채팅 개수
       uniqueNames = []; //채터 명수
       personaldata = [];
       chartdata = [];
       words = [];
       awords = [];
-      names = x.match(/\[(.*)\] \[오/g);
+      names = x.match(/\[.*] \[오후|전\]/g);
+      //이름 중복 제거!
       $.each(names, function(i, el) {
         if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
       })
-      for (var i = 0; i < uniqueNames.length; i++) {
-        uniqueNames[i] = uniqueNames[i].split('[', 2)[1].split(']', 2)[0];
+      //차트에 삽입!
+      for (i = 1; i <= uniqueNames.length; i++) {
+        chartdata[i] = [];
+        chartdata[i][0] = uniqueNames[i - 1];
+        chartdata[i][1] = x.split(uniqueNames[i - 1]).length - 1;
       }
+      //차트에 삽입!
+      for (i = 1; i <= uniqueNames.length; i++) {
+        chartdata[i][0] = chartdata[i][0].split("[")[1];
+        chartdata[i][0] = chartdata[i][0].split("]")[0];
+      }
+      //이름 자르기!
+      for (var i = 0; i < uniqueNames.length; i++) {
+          uniqueNames[i] = uniqueNames[i].replace(/[^ㄱ-힣A-Za-z]/g, "");
+          uniqueNames[i] = uniqueNames[i].replace("오전", "");
+          uniqueNames[i] = uniqueNames[i].replace("오후", "");
+      }
+      //개인별 채팅내역!
       for (i = 0; i < uniqueNames.length; i++) {
         personaldata[i] = [];
         personaldata[i][0] = uniqueNames[i];
         personaldata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
         personaldata[i] = toObject(personaldata[i])
-      }
-      for (i = 1; i <= uniqueNames.length; i++) {
-        chartdata[i] = [];
-        chartdata[i][0] = uniqueNames[i - 1];
-        chartdata[i][1] = x.split("[" + uniqueNames[i - 1] + "] [오").length - 1;
       }
       awords = x.split(" ");
 
