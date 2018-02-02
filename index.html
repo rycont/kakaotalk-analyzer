@@ -14,6 +14,7 @@
       text-align: center;
       font-family: 'Noto sans kr', sans-serif;
       color: white;
+      overflow-x: hidden;
     }
 
     xmp {
@@ -92,6 +93,28 @@
     }
     #chart_div{
       display: none;
+    }
+    @media (max-width: 500px) {
+      body{
+        margin: 0;
+        padding: 0;
+      }
+      #container{
+        max-width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+      #main{
+        padding: 0;
+      }
+      #next{
+        position: fixed;
+        top: 50vh;
+      }
+      #contents{
+        width: 90vw;
+        height: 14vh;
+      }
     }
   </style>
 </head>
@@ -216,8 +239,6 @@
   <div class="gr" id="bg1"></div>
   <div class="gr" id="bg2"></div>
   <div class="gr" id="bg3"></div>
-  <div class="gr" id="bg4"></div>
-  <div class="gr" id="bg5"></div>
   <div id="main">
     <div id="container">
       <h1 class="opacitys">카카오톡 분석기</h1>
