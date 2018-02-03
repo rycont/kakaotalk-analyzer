@@ -1,175 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>카카오톡 분석</title>
+  <title>Document</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script type="text/javascript">
-    function download(data, name, type) {
-      var file = new Blob([data], {type: type});
-      if (window.navigator.msSaveOrOpenBlob) // IE10+
-          window.navigator.msSaveOrOpenBlob(file, name);
-      else { // Others
-          var a = document.createElement("a"),
-                  url = URL.createObjectURL(file);
-          a.href = url;
-          a.download = name;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(function() {
-              document.body.removeChild(a);
-              window.URL.revokeObjectURL(url);
-          }, 0);
-      }
-    }
-    function toObject(arr) {
-      var rv = {};
-      for (var i = 0; i < arr.length; ++i)
-        rv[i] = arr[i];
-      return rv;
-    }
-
-    function analysis(x) {
-      chatsum = x.match(/\[.*] \[오후|전\]/g).length; //채팅 개수
-      uniqueNames = []; //채터 명수
-      personaldata = [];
-      chartdata = [];
-      words = [];
-      awords = [];
-      names = x.match(/\[.*] \[오후|전\]/g);
-      //이름 중복 제거!
-      $.each(names, function(i, el) {
-        if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-      })
-      //차트에 삽입!
-      for (i = 1; i <= uniqueNames.length; i++) {
-        chartdata[i] = [];
-        chartdata[i][0] = uniqueNames[i - 1];
-        chartdata[i][1] = x.split(uniqueNames[i - 1]).length - 1;
-      }
-      //차트에 삽입!
-      for (i = 1; i <= uniqueNames.length; i++) {
-        chartdata[i][0] = chartdata[i][0].split("[")[1];
-        chartdata[i][0] = chartdata[i][0].split("]")[0];
-      }
-      //이름 자르기!
-      for (var i = 0; i < uniqueNames.length; i++) {
-          uniqueNames[i] = uniqueNames[i].replace(/[^ㄱ-힣A-Za-z]/g, "");
-          uniqueNames[i] = uniqueNames[i].replace("오전", "");
-          uniqueNames[i] = uniqueNames[i].replace("오후", "");
-      }
-      //개인별 채팅내역!
-      for (i = 0; i < uniqueNames.length; i++) {
-        personaldata[i] = [];
-        personaldata[i][0] = uniqueNames[i];
-        personaldata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
-        personaldata[i] = toObject(personaldata[i])
-      }
-      awords = x.split(" ");
-
-      chartdata[0] = [];
-      chartdata[0][0] = "이름";
-      chartdata[0][1] = "개수";
-      analysis_array = new Array();
-      analysis_array.sum = chatsum;
-      analysis_array.names = uniqueNames;
-      analysis_array.personal = toObject(personaldata);
-      analysis_array.chartper = chartdata;
-    }
-
-    function toggle(obj, state) {
-      if (state == 1) {
-        $(obj).animate({
-          'opacity': '0'
-        }, 500);
-      } else {
-        $(obj).animate({
-          'opacity': '1'
-        }, 500);
-      }
-    }
-
-    var nscreen = 1;
-    function next() {
-      if (nscreen == 1) {
-        toggle('.opacitys', 1);
-        $('#bg1').animate({
-          'opacity': '0'
-        }, 1000);
-        setTimeout(function() {
-          $('h1').html("파일 업로드");
-          $('#content').html("카카오톡 오른쪽 위의 삼선메뉴를 클릭하고 대화내용에서 대화내용 내보내기 한 후 생긴 TXT 파일의 내용을 붙혀넣어주세요");
-          $('#content').css("font-size", 30);
-          $('#content').css("margin-top", "50px");
-          toggle('textarea', 0);
-          nscreen = 2;
-        }, 500);
-        toggle('.opacitys', 0);
-      } else if (nscreen == 2) {
-        analysis(document.getElementById('contents').value);
-        toggle('.opacitys', 1);
-        toggle('textarea', 1);
-        toggle('#next', 1);
-        $('#bg2').animate({
-          'opacity': '0'
-        }, 1000);
-        setTimeout(function() {
-          $('h1').html("분석 결과");
-              google.charts.load('current', {'packages':['corechart']});
-              google.charts.setOnLoadCallback(drawChart);
-              function drawChart() {
-              var data = google.visualization.arrayToDataTable(analysis_array.chartper);
-                var options = {'title':'',
-                               'backgroundColor' : 'transparent',
-                               'width':400,
-                               'height':300};
-                var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-                chart.draw(data, options);
-              }
-          $('#content').html("총 채팅 개수: " + analysis_array.sum + "<br>구성원: " + analysis_array.names);
-          document.getElementById('chart_div').style.display = "block";
-          document.getElementById('contents').style.display = "none";
-          document.getElementById('container').style.height = "auto";
-          document.getElementById('next').innerHTML = "JSON으로 내보내기"
-          document.getElementById('next').style.top = "100vh"
-          toggle('#next', 0);
-          nscreen = 3;
-        }, 500);
-        toggle('.opacitys', 0);
-      } else if(nscreen == 3){
-          var export_analysis = {};
-          for (var i = 0; i < analysis_array.names.length; i++) {
-            export_analysis[chartdata[i + 1][0]] = chartdata[i + 1][1];
-          }
-        download(JSON.stringify(export_analysis, null, 2), "분석 결과.json", "json");
-      }
-    }
-  </script>
-  <div class="gr" id="bg1"></div>
-  <div class="gr" id="bg2"></div>
-  <div class="gr" id="bg3"></div>
-  <div id="main">
-    <div id="container">
-      <h1 class="opacitys">카카오톡 분석기</h1>
-      <div id="content" class="opacitys">
-        아 여기에 뭐쓰지
-      </div>
-      <div id="chart_div">차트 영역입니다</div>
-      <textarea rows="20" cols="60" id="contents"></textarea>
+  <script src="script.js" charset="utf-8"></script>
+  <div class="container">
+    <div class="item">
+      <h1>카카오톡 대화 내용을 아래의 상자에 입력해주세요</h1>
     </div>
-    <div id="next" onclick="next()">다음</div>
+    <textarea class="item" id="chat" autofocus></textarea>
+    <div class="item" onclick="next()">분석</div>
   </div>
-  <script type="text/javascript">
-
-  </script>
+  <div class="container" id="downloaddiv">
+    <div id="download">분석결과 다운로드하기</div>
+  </div>
 </body>
-
 </html>
