@@ -7,169 +7,113 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>카카오톡 분석</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://uicdn.toast.com/tui.chart/latest/tui-chart.min.css">
 </head>
 
 <body>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script type="text/javascript">
-    function download(data, name, type) {
-      var file = new Blob([data], {type: type});
-      if (window.navigator.msSaveOrOpenBlob) // IE10+
-          window.navigator.msSaveOrOpenBlob(file, name);
-      else { // Others
-          var a = document.createElement("a"),
-                  url = URL.createObjectURL(file);
-          a.href = url;
-          a.download = name;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(function() {
-              document.body.removeChild(a);
-              window.URL.revokeObjectURL(url);
-          }, 0);
-      }
-    }
-    function toObject(arr) {
-      var rv = {};
-      for (var i = 0; i < arr.length; ++i)
-        rv[i] = arr[i];
-      return rv;
-    }
+  <div id="chart-area"></div>
 
-    function analysis(x) {
-      chatsum = x.match(/\[.*] \[오후|전\]/g).length; //채팅 개수
-      uniqueNames = []; //채터 명수
-      personaldata = [];
-      chartdata = [];
-      words = [];
-      awords = [];
-      names = x.match(/\[.*] \[오후|전\]/g);
-      //이름 중복 제거!
-      $.each(names, function(i, el) {
-        if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-      })
-      //차트에 삽입!
-      for (i = 1; i <= uniqueNames.length; i++) {
-        chartdata[i] = [];
-        chartdata[i][0] = uniqueNames[i - 1];
-        chartdata[i][1] = x.split(uniqueNames[i - 1]).length - 1;
-      }
-      //차트에 삽입!
-      for (i = 1; i <= uniqueNames.length; i++) {
-        chartdata[i][0] = chartdata[i][0].split("[")[1];
-        chartdata[i][0] = chartdata[i][0].split("]")[0];
-      }
-      //이름 자르기!
-      for (var i = 0; i < uniqueNames.length; i++) {
-          uniqueNames[i] = uniqueNames[i].replace(/[^ㄱ-힣A-Za-z]/g, "");
-          uniqueNames[i] = uniqueNames[i].replace("오전", "");
-          uniqueNames[i] = uniqueNames[i].replace("오후", "");
-      }
-      //개인별 채팅내역!
-      for (i = 0; i < uniqueNames.length; i++) {
-        personaldata[i] = [];
-        personaldata[i][0] = uniqueNames[i];
-        personaldata[i][1] = x.split("[" + uniqueNames[i] + "] [오").length - 1;
-        personaldata[i] = toObject(personaldata[i])
-      }
-      awords = x.split(" ");
+  <div class="container current" id="start">
+    <svg width="100%" viewBox="0 0 1024 755" version="1.1" xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/"
+      style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" id="clip">
+      <g id="Artboard1" transform="matrix(1,0,0,0.697967,0,0)">
+        <rect x="0" y="0" width="1024" height="1024" style="fill:none;" />
+        <g transform="matrix(1,0,0,1.43273,0,0)">
+          <path d="M0,714.718L0,0L1024,0L1024,376.49C1024,376.49 271.02,363.809 0,714.718Z"
+            style="fill:rgb(235,212,212);" />
+        </g>
+      </g>
+    </svg>
 
-      chartdata[0] = [];
-      chartdata[0][0] = "이름";
-      chartdata[0][1] = "개수";
-      analysis_array = new Array();
-      analysis_array.sum = chatsum;
-      analysis_array.names = uniqueNames;
-      analysis_array.personal = toObject(personaldata);
-      analysis_array.chartper = chartdata;
-    }
-
-    function toggle(obj, state) {
-      if (state == 1) {
-        $(obj).animate({
-          'opacity': '0'
-        }, 500);
-      } else {
-        $(obj).animate({
-          'opacity': '1'
-        }, 500);
-      }
-    }
-
-    var nscreen = 1;
-    function next() {
-      if (nscreen == 1) {
-        toggle('.opacitys', 1);
-        $('#bg1').animate({
-          'opacity': '0'
-        }, 1000);
-        setTimeout(function() {
-          $('h1').html("파일 업로드");
-          $('#content').html("카카오톡 오른쪽 위의 삼선메뉴를 클릭하고 대화내용에서 대화내용 내보내기 한 후 생긴 TXT 파일의 내용을 붙혀넣어주세요");
-          $('#content').css("font-size", 30);
-          $('#content').css("margin-top", "50px");
-          toggle('textarea', 0);
-          nscreen = 2;
-        }, 500);
-        toggle('.opacitys', 0);
-      } else if (nscreen == 2) {
-        analysis(document.getElementById('contents').value);
-        toggle('.opacitys', 1);
-        toggle('textarea', 1);
-        toggle('#next', 1);
-        $('#bg2').animate({
-          'opacity': '0'
-        }, 1000);
-        setTimeout(function() {
-          $('h1').html("분석 결과");
-              google.charts.load('current', {'packages':['corechart']});
-              google.charts.setOnLoadCallback(drawChart);
-              function drawChart() {
-              var data = google.visualization.arrayToDataTable(analysis_array.chartper);
-                var options = {'title':'',
-                               'backgroundColor' : 'transparent',
-                               'width':400,
-                               'height':300};
-                var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-                chart.draw(data, options);
-              }
-          $('#content').html("총 채팅 개수: " + analysis_array.sum + "<br>구성원: " + analysis_array.names);
-          document.getElementById('chart_div').style.display = "block";
-          document.getElementById('contents').style.display = "none";
-          document.getElementById('container').style.height = "auto";
-          document.getElementById('next').innerHTML = "JSON으로 내보내기"
-          document.getElementById('next').style.top = "100vh"
-          toggle('#next', 0);
-          nscreen = 3;
-        }, 500);
-        toggle('.opacitys', 0);
-      } else if(nscreen == 3){
-          var export_analysis = {};
-          for (var i = 0; i < analysis_array.names.length; i++) {
-            export_analysis[chartdata[i + 1][0]] = chartdata[i + 1][1];
-          }
-        download(JSON.stringify(export_analysis, null, 2), "분석 결과.json", "json");
-      }
-    }
-  </script>x
-  <div class="gr" id="bg1"></div>
-  <div class="gr" id="bg2"></div>
-  <div class="gr" id="bg3"></div>
-  <div id="main">
-    <div id="container">
-      <h1 class="opacitys">카카오톡 분석기</h1>
-      <div id="content" class="opacitys">
-        아 여기에 뭐쓰지
+    <div id="content">
+      <div>
+        <p id="subtitle">2020 Redesign</p>
+        <p class="title">카카오톡 분석</p>
       </div>
-      <div id="chart_div">차트 영역입니다</div>
-      <textarea rows="20" cols="60" id="contents"></textarea>
+      <div class="buttoncon">
+        <div class="button">
+          <a href="#input">시작하기</a>
+        </div>
+      </div>
     </div>
-    <div id="next" onclick="next()">다음</div>
   </div>
+  <div class="container" id="input">
+    <h1 class="pagetitle">대화 내용을 입력해주세요</h1>
+    <div class="content">
+      <div id="file">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" id="clip">
+          <path d="M0 0h24v24H0V0z" fill="none" />
+          <path fill="#FF9D9D"
+            d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
+        </svg>
+        <p>파일로 올리기</p>
+      </div>
+      <div id="textInput">
+        <textarea placeholder="직접 입력" id="chatlog"></textarea>
+      </div>
+    </div>
+    <div class="buttoncon">
+      <div class="button" id="analysis">
+        <a href="#view_chart">
+          분석하기
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="container" id="view_chart">
+    <div id="chart"></div>
+    <div class="buttoncon">
+      <div class="button" id="download">내려받기</div>
+    </div>
+  </div>
+  <!-- <script src="https://uicdn.toast.com/tui.chart/latest/tui-chart.min.js"></script> -->
+  <script src="./node_modules/tui-chart/dist/tui-chart-all.js"></script>
   <script type="text/javascript">
+    function analysis(chats) {
+      const users = [...new Set(chats.match((/, .*? : /g)).map(e => e.slice(2, -3)))];
+      const chatQuantityByUser = users.reduce((obj, i) => ({
+        ...obj,
+        [i]: chats.split(i).length - 1
+      }), {})
+      return chatQuantityByUser
+    }
+    function drawChart(draweeData) {
+      const chart = document.getElementById('chart')
+      tui.chart.columnChart(chart, {
+        categories: Object.keys(draweeData),
+        series: [
+          {
+            name: '채팅 수',
+            data: Object.values(draweeData)
+          }
+        ]
+      }, {
+        chart: {
+          width: 640,
+          height: 540,
+          format: '1,000'
+        },
+        yAxis: {
+          title: '갯수',
+        },
+        xAxis: {
+          title: '이름'
+        },
+        legend: {
+          visible: false
+        }
+      });
 
+    }
+    [...document.getElementsByClassName('move-page')].map(e => e.addEventListener('click', () => goto(Number(e.dataset.goto))))
+    document.getElementById('analysis').addEventListener('click', () =>
+      drawChart(analysis(document.getElementById('chatlog').value))
+    )
+    document.getElementById('download').addEventListener('click', () => document.querySelector("#csv").click())
+    if (location.pathname === '/') location.href = '#start'
   </script>
+
 </body>
 
 </html>
